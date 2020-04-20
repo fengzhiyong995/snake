@@ -1,0 +1,49 @@
+page{
+  background-color: #181818;
+}
+
+.snakeScore{
+  width:100rpx;background-color:rgba(214, 214, 214, 0.04);
+  color: #fff;font-size: 10rpx;position: fixed;top: 12rpx;left: 12rpx;
+  display: flex;flex-direction: column;box-sizing: border-box;
+  padding: 3rpx 8rpx;
+}
+.snakeScore .fraction{
+  margin-bottom: 3rpx;
+}
+.snakeMaps{
+  width:132rpx;height:132rpx;background-color: rgba(93, 93, 93, 0.09);border-radius:10rpx;position: fixed;top: 12rpx;right: 12rpx;
+}
+.snakeMapB{
+  width: 100vw;height:100vh;position: absolute;
+}
+.snakeDirection{
+  position: fixed;left:18rpx;bottom: 24rpx;background-image: repeating-radial-gradient(circle,rgba(184, 184, 184, 0.07) 0%,rgba(194, 194, 194, 0.07) 95%,rgba(59, 59, 59, 0.5) 100%);width: 142rpx;height: 142rpx;border-radius: 50%;
+
+}
+.snakeDirection .top{
+  width: 50rpx;height: 50rpx;background-image: repeating-radial-gradient(circle,rgba(255, 255, 255, 0.81),rgba(247, 247, 247, .92) ,rgba(46, 46, 46, 0.151));box-shadow: 0 0 17px 2px rgba(114, 114, 114, 0.5);border-radius: 50%;position: absolute;top: 46rpx;left: 46rpx;
+}
+.snakeAcceleration{
+  position: fixed;bottom: 24rpx;right: 27rpx;background-color: rgba(214, 214, 214, 0.07);width:91rpx;height: 91rpx;border-radius:50%;display: flex;align-items: center;
+  
+}
+.snakeAcceleration image{
+    display: block;width: 91rpx;height: 91rpx;
+}
+.snakeDeceleration{
+  width: 53rpx;height: 53rpx;position: fixed;border-radius: 50%;background-color: rgba(214, 214, 214, 0.07);right: 91rpx;bottom: 111rpx;display: flex;align-items: center;justify-content: center;
+}
+.snakeDeceleration .sD{
+    width: 33rpx;height: 3rpx;border-radius: 1.5rpx;background-color: rgba(214, 214, 214, 0.81);
+}
+.snakeSuspend{
+  position: fixed;right: 13rpx;bottom: 162rpx;width: 35rpx;height: 35rpx;border-radius: 2rpx;background-color: rgba(214, 214, 214, 0.07);display: flex;
+  align-items: center;justify-content: center;
+}
+.snakeSuspend .box{
+  display: flex;justify-content: space-between;width: 15rpx;height: 20rpx;
+}
+.snakeSuspend .ssL,.snakeSuspend .ssR{
+  width: 4rpx;height: 20rpx;background-color: rgba(86, 86, 255, 0.9);border-radius: 1.5rpx;
+}

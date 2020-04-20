@@ -1,0 +1,25 @@
+<view class="snakeScore">
+    <text class="fraction">分数: {{score.fraction}}</text>
+    <text class="length">长度: {{score.length}}</text>
+</view>
+<canvas class="snakeMapB" type="2d">
+
+</canvas>
+<canvas class="snakeMaps" type="2d">
+
+</canvas>
+<view class="snakeSuspend">
+  <view class="box">
+    <view class="ssL"></view>
+    <view class="ssR"></view>
+  </view>
+</view>
+<view class="snakeDirection" >
+  <view class="top" bindtouchend="directionTouchE" bindtouchmove="directionTouchM" bindtouchstart="directionTouchS" style="top:{{direction.y}}px;left:{{direction.x}}px"></view>
+</view>
+<view class="snakeAcceleration" bindtouchstart = 'accelerationTouchS' bindtouchend="clearinter">
+  <image src="../../images/jiasu.png"></image>
+</view>
+<view class="snakeDeceleration" bindtouchstart="decelerationTouchS" bindtouchend="clearinter">
+  <view class="sD"></view>
+</view>
