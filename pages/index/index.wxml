@@ -1,13 +1,14 @@
+<canvas canvas-id="snakeMapB" id = "snakeMapB" >
+
+</canvas>
+<canvas canvas-id="snakeMaps"  id="snakeMaps">
+
+</canvas>
 <view class="snakeScore">
     <text class="fraction">分数: {{score.fraction}}</text>
     <text class="length">长度: {{score.length}}</text>
 </view>
-<canvas class="snakeMapB" type="2d">
 
-</canvas>
-<canvas class="snakeMaps" type="2d">
-
-</canvas>
 <view class="snakeSuspend">
   <view class="box">
     <view class="ssL"></view>

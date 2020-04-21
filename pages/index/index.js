@@ -1,14 +1,13 @@
 //index.js
 //获取应用实例
-const app = getApp()
-
+const app = getApp();
 Page({
   data: {
       score:{//积分板的数据
         fraction:'',
         length:''
       },
-      speed:1000,//速度
+      speed:100,//速度
       direction:{//虚拟轮盘的位置
         x:'',
         y:''
@@ -18,10 +17,115 @@ Page({
         y:"",
         top:'',
         left:'',
-        r1:'gg',
-        r2:'ss'
+        r1:'',
+        r2:''
       },
-      interval:null
+      interval:null,//速度定时器
+      snake:{
+        x:300,
+        y:150,
+        width:'',
+        length:''
+      },
+      drawInter:null,//绘制定时器
+      draw(c,x,y){//绘制开始的蛇-动画
+        c.beginPath();
+        c.moveTo(this.snake.x,this.snake.y);
+        c.lineTo(x,y);
+        c.stroke();        
+        c.draw(true)
+      }
+  },
+  onLoad:function(){
+    var that = this;
+    const ctx = wx.createCanvasContext('snakeMapB');
+    ctx.setStrokeStyle('red');
+    ctx.setLineCap("round");
+    ctx.setLineJoin("round");
+    ctx.setLineWidth(15);
+    let rand = Math.floor(Math.random() * 360);
+    let b = Math.floor(rand / 90);
+    let tureRand = rand - 90 * b;
+    let tan = Math.tan(Math.PI / 180 * tureRand);
+    let v = 0.2;
+    switch(b){//以随机的角度为依据，写出初始蛇的出生方向
+      case 0: 
+        var x = that.data.snake.x + v;
+        var y = that.data.snake.y + tan; 
+        tureRand === 90?x = that.data.snake.x:'';
+        that.data.draw(ctx,x,y);
+        console.log(x,y,rand);
+        var i = 1;
+        that.setData({
+          drawInter:setInterval(() => {
+            that.data.draw(ctx,x,y);
+            tureRand === 90?'': x = ++x;
+            y = y +  tan;
+            i++;
+            i === 30 ?clearInterval(that.data.drawInter):'';
+          }, that.data.speed),
+        })
+        break;
+      case 1: 
+        var x = that.data.snake.x - v;
+        var y = that.data.snake.y + tan;
+        tureRand === 90?y = that.data.snake.y:'';
+        that.data.draw(ctx,x,y);
+        console.log(x,y,rand);
+        var i = 1;
+        that.setData({
+          drawInter:setInterval(() => {
+            that.data.draw(ctx,x,y);
+            tureRand === 90?'':y = y + tan;
+            x = --x;
+            i++;
+            i === 30 ?clearInterval(that.data.drawInter):'';
+          }, that.data.speed),
+        })
+        break;
+      case 2: 
+        var x = that.data.snake.x -v;
+        var y = that.data.snake.y - tan;
+        tureRand === 90?x = that.data.snake.x:'';
+        that.data.draw(ctx,x,y);
+        console.log(x,y,rand);
+        var i = 1;
+        that.setData({
+          drawInter:setInterval(() => {
+            that.data.draw(ctx,x,y);
+            tureRand === 90?'':x = --x;
+            y = y - tan;
+            i++;
+            i === 30 ?clearInterval(that.data.drawInter):'';
+          }, that.data.speed),
+        })
+        break;
+      case 3: 
+        var x = that.data.snake.x + v;
+        var y = that.data.snake.y - tan;
+        tureRand === 90?y = that.data.snake.y:'';
+        that.data.draw(ctx,x,y);
+        console.log(x,y,rand);
+        var i = 1;
+        that.setData({
+          drawInter:setInterval(() => {
+            that.data.draw(ctx,x,y);
+            tureRand === 90?'':y = y - tan;
+            x = ++x;
+            i++;
+            i === 30 ?clearInterval(that.data.drawInter):'';
+          }, that.data.speed),
+        })
+        break;
+      default: console.log(22);
+    }
+  },
+  draw:function(c,x,y){
+      // c.clearRect(0,0,app.device.width,app.device.height);
+      // c.beginPath();
+      // c.setFillStyle('green');
+      // c.fillRect(x,y,100,100);
+      // c.draw();
   },
   directionTouchS:function(e){//虚拟轮盘的触摸开始事件，获得初始的位置
     let that = this;
