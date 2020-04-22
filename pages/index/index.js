@@ -4,129 +4,204 @@ const app = getApp();
 Page({
   data: {
       score:{//积分板的数据
-        fraction:'',
-        length:''
+        fraction:null,
+        length:null
       },
-      speed:100,//速度
+      speed:50,//速度
       direction:{//虚拟轮盘的位置
-        x:'',
-        y:''
+        x:null,
+        y:null
       },
       directionInit:{//初始的轮盘位置
-        x:"",
-        y:"",
-        top:'',
-        left:'',
-        r1:'',
-        r2:''
+        x:null,
+        y:null,
+        top:null,
+        left:null,
+        r1:null,
+        r2:null
       },
       interval:null,//速度定时器
-      snake:{
-        x:300,
-        y:150,
-        width:'',
-        length:''
-      },
+      snake:[{
+        length:100,
+        r:15,
+        apprar:1
+       },
+        {
+        x:340,
+        y:119
+      }],
       drawInter:null,//绘制定时器
-      draw(c,x,y){//绘制开始的蛇-动画
+      draw(c,v){//绘制开始的蛇-动画
+        let r = this.snake[0].r;
         c.beginPath();
-        c.moveTo(this.snake.x,this.snake.y);
-        c.lineTo(x,y);
-        c.stroke();        
-        c.draw(true)
+        c.setStrokeStyle('red');
+        c.setLineCap("round");
+        c.setLineJoin("round");
+        c.setLineWidth(r);
+        c.moveTo(this.snake[1].x,this.snake[1].y);
+        for(var i = 0;i<v;i++){
+          c.lineTo(this.snake[2][i].x,this.snake[2][i].y);
+        }        
+        c.stroke();   
+        c.beginPath();
+        c.setFillStyle('red');
+        c.arc(this.snake[2][v-1].x,this.snake[2][v - 1].y,0.55*r,0,2*Math.PI);
+        c.fill();
+        c.draw()
       }
   },
   onLoad:function(){
     var that = this;
     const ctx = wx.createCanvasContext('snakeMapB');
-    ctx.setStrokeStyle('red');
-    ctx.setLineCap("round");
-    ctx.setLineJoin("round");
-    ctx.setLineWidth(15);
+    let l = that.data.snake[0].length;
     let rand = Math.floor(Math.random() * 360);
     let b = Math.floor(rand / 90);
     let tureRand = rand - 90 * b;
     let tan = Math.tan(Math.PI / 180 * tureRand);
     let v = 0.2;
+    let ss = [];
+    let x,y;
     switch(b){//以随机的角度为依据，写出初始蛇的出生方向
       case 0: 
-        var x = that.data.snake.x + v;
-        var y = that.data.snake.y + tan; 
-        tureRand === 90?x = that.data.snake.x:'';
-        that.data.draw(ctx,x,y);
-        console.log(x,y,rand);
-        var i = 1;
+        tureRand === 90?v = 0:'';
+        x = that.data.snake[1].x + v;
+        y = that.data.snake[1].y + tan;
+        for(let yy = 1;yy<l;yy++){    
+          let s = {};
+          s.x = x;
+          s.y = y;
+          ss.push(s);
+          x += v;
+          y += tan;
+        }
+        that.data.snake.push(ss);
         that.setData({
           drawInter:setInterval(() => {
-            that.data.draw(ctx,x,y);
-            tureRand === 90?'': x = ++x;
-            y = y +  tan;
-            i++;
-            i === 30 ?clearInterval(that.data.drawInter):'';
+            that.data.draw(ctx,that.data.snake[0].apprar);
+            that.data.snake[0].apprar++;
+            if( that.data.snake[0].apprar === that.data.snake[0].length){
+              clearInterval(that.data.drawInter);
+              that.setData({
+                drawInter:setInterval(() => {
+                  that.data.snake[1].x += v;
+                  that.data.snake[1].y += tan;
+                  that.data.snake[2].forEach(function(e){
+                    e.x += v;e.y += tan;
+                  });    
+                  that.data.draw(ctx,that.data.snake[0].apprar - 1);
+                }, that.data.speed)
+              })
+            }
           }, that.data.speed),
         })
         break;
       case 1: 
-        var x = that.data.snake.x - v;
-        var y = that.data.snake.y + tan;
-        tureRand === 90?y = that.data.snake.y:'';
-        that.data.draw(ctx,x,y);
+        tureRand === 90?tan = 0:'';
+        x = that.data.snake[1].x - v;
+        y = that.data.snake[1].y + tan;
+        for(let yy = 1;yy<l;yy++){    
+          let s = {};
+          s.x = x;
+          s.y = y;
+          ss.push(s);
+          y += tan;
+          x -= v;
+        }
+        that.data.snake.push(ss);
         console.log(x,y,rand);
-        var i = 1;
         that.setData({
           drawInter:setInterval(() => {
-            that.data.draw(ctx,x,y);
-            tureRand === 90?'':y = y + tan;
-            x = --x;
-            i++;
-            i === 30 ?clearInterval(that.data.drawInter):'';
+            that.data.draw(ctx,that.data.snake[0].apprar);
+            that.data.snake[0].apprar++;
+            if( that.data.snake[0].apprar === that.data.snake[0].length){
+              clearInterval(that.data.drawInter);
+              that.setData({
+                drawInter:setInterval(() => {
+                  that.data.snake[1].x -= v;
+                  that.data.snake[1].y += tan;
+                  that.data.snake[2].forEach(function(e){
+                    e.x -= v;e.y += tan;
+                  });    
+                  that.data.draw(ctx,that.data.snake[0].apprar - 1);
+                }, that.data.speed)
+              })
+            }
           }, that.data.speed),
         })
         break;
       case 2: 
-        var x = that.data.snake.x -v;
-        var y = that.data.snake.y - tan;
-        tureRand === 90?x = that.data.snake.x:'';
-        that.data.draw(ctx,x,y);
+        tureRand === 90?v = 0:'';
+        y = that.data.snake[1].y - tan;
+        x = that.data.snake[1].x - v;
+        for(let yy = 1;yy<l;yy++){    
+          let s = {};
+          s.x = x;
+          s.y = y;
+          ss.push(s);
+          x -= v;
+          y -= tan;
+        }
+        that.data.snake.push(ss);
         console.log(x,y,rand);
-        var i = 1;
         that.setData({
           drawInter:setInterval(() => {
-            that.data.draw(ctx,x,y);
-            tureRand === 90?'':x = --x;
-            y = y - tan;
-            i++;
-            i === 30 ?clearInterval(that.data.drawInter):'';
+            that.data.draw(ctx,that.data.snake[0].apprar);
+            that.data.snake[0].apprar++;
+            if( that.data.snake[0].apprar === that.data.snake[0].length){
+              clearInterval(that.data.drawInter);
+              that.setData({
+                drawInter:setInterval(() => {
+                  that.data.snake[1].x -= v;
+                  that.data.snake[1].y -= tan;
+                  that.data.snake[2].forEach(function(e){
+                    e.x -= v;e.y -= tan;
+                  });    
+                  that.data.draw(ctx,that.data.snake[0].apprar - 1);
+                }, that.data.speed)
+              })
+            }
           }, that.data.speed),
         })
         break;
       case 3: 
-        var x = that.data.snake.x + v;
-        var y = that.data.snake.y - tan;
-        tureRand === 90?y = that.data.snake.y:'';
-        that.data.draw(ctx,x,y);
+        tureRand === 90?tan = 0:'';
+        x = that.data.snake[1].x + v;
+        y = that.data.snake[1].y - tan;
+        for(let yy = 1;yy<l;yy++){    
+          let s = {};
+          s.x = x;
+          s.y = y;
+          ss.push(s);
+          y -= tan;
+          x += v;
+        }
+        that.data.snake.push(ss);
         console.log(x,y,rand);
-        var i = 1;
         that.setData({
           drawInter:setInterval(() => {
-            that.data.draw(ctx,x,y);
-            tureRand === 90?'':y = y - tan;
-            x = ++x;
-            i++;
-            i === 30 ?clearInterval(that.data.drawInter):'';
+            that.data.draw(ctx,that.data.snake[0].apprar);
+            that.data.snake[0].apprar++;
+            if( that.data.snake[0].apprar === that.data.snake[0].length){
+              clearInterval(that.data.drawInter);
+              that.setData({
+                drawInter:setInterval(() => {
+                  that.data.snake[1].x += v;
+                  that.data.snake[1].y -= tan;
+                  that.data.snake[2].forEach(function(e){
+                    e.x += v;e.y -= tan;
+                  });    
+                  that.data.draw(ctx,that.data.snake[0].apprar - 1);
+                }, that.data.speed)
+              })
+            }
           }, that.data.speed),
         })
         break;
-      default: console.log(22);
-    }
+      default: ;
+    };
+
   },
-  draw:function(c,x,y){
-      // c.clearRect(0,0,app.device.width,app.device.height);
-      // c.beginPath();
-      // c.setFillStyle('green');
-      // c.fillRect(x,y,100,100);
-      // c.draw();
-  },
+
   directionTouchS:function(e){//虚拟轮盘的触摸开始事件，获得初始的位置
     let that = this;
     let x = e.touches[0].pageX;
@@ -151,6 +226,7 @@ Page({
     })
   },
   directionTouchM:function(e){//虚拟轮盘的触摸移动事件，获得初始的位置更新位置
+    console.log(this.data.snake[0].apprar);
     let x = e.touches[0].pageX;
     let y = e.touches[0].pageY;
     let lX = e.target.offsetLeft;
