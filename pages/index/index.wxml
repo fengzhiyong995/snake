@@ -1,6 +1,9 @@
 <canvas canvas-id="snakeMapB" id = "snakeMapB" >
 
 </canvas>
+<canvas canvas-id="snakeFood" id="snakeFood">
+
+</canvas>
 <canvas canvas-id="snakeMaps"  id="snakeMaps">
 
 </canvas>
