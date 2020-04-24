@@ -1,0 +1,36 @@
+[33mcommit 1dedd0fc6146c7afe96e6d153089110d32063960[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m)[m
+Author: 冯志勇 <FengZhiYong@qq.com>
+Date:   Thu Apr 23 20:45:25 2020 +0800
+
+    添加生成食物的模块、待完善，完成了操作蛇的模块
+
+[33mcommit 9158c208128b83f28c09fd31e17392903c3fae88[m[33m ([m[1;31msnake/master[m[33m)[m
+Author: 冯志勇 <FengZhiYong@qq.com>
+Date:   Wed Apr 22 23:17:56 2020 +0800
+
+    修改了生成蛇的方法、添加了生成后蛇的运动
+
+[33mcommit 1e158c03c13f0584ca670fa51e12271b0d4e49df[m
+Author: 冯志勇 <FengZhiYong@qq.com>
+Date:   Tue Apr 21 23:07:37 2020 +0800
+
+    添加生成蛇功能
+
+[33mcommit f0eeabafc3ae4cf1f7073b50b746e78848a254c2[m
+Merge: dab1b8f 5ce7ba5
+Author: 冯志勇 <FengZhiYong@qq.com>
+Date:   Mon Apr 20 21:14:22 2020 +0800
+
+    Merge branch 'master' of github.com:fengzhiyong995/snake
+
+[33mcommit dab1b8f103d07fd8261361193ee39d3fa1c60af0[m[33m ([m[1;33mtag: v1.0.0[m[33m)[m
+Author: 冯志勇 <FengZhiYong@qq.com>
+Date:   Mon Apr 20 21:07:04 2020 +0800
+
+    初始化版本
+
+[33mcommit 5ce7ba520d2bc00d473d27bf5fdd9de3218a3280[m
+Author: 2117538193 <60052921+2117538193@users.noreply.github.com>
+Date:   Mon Apr 20 20:59:12 2020 +0800
+
+    Initial commit

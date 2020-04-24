@@ -4,7 +4,7 @@ const app = getApp();
 Page({
   data: {
       score:{//积分板的数据
-        fraction:null,
+        fraction:0,
         length:null
       },
       speed:150,//速度
@@ -24,6 +24,7 @@ Page({
       snake:[{
         sLength:30,
         r:15,
+        sR:null,
         apprar:1,
         xMove:null,
         yMove:null,
@@ -49,11 +50,12 @@ Page({
         c.stroke();   
         c.beginPath();
         c.setFillStyle('red');
-        c.arc(this.snake[2][v-1].x,this.snake[2][v - 1].y,0.55*r,0,2*Math.PI);
+        c.arc(this.snake[2][v-1].x,this.snake[2][v - 1].y,this.snake[0].sR,0,2*Math.PI);
         c.fill();
         c.draw()
       },
       food:{
+        t:null,
         x:null,
         y:null,
         bgC:null,
@@ -79,6 +81,7 @@ Page({
     that.data.snake[0].xMove = v;
     that.data.snake[0].yMove = tan;
     that.data.snake[0].deg.push(b+1,tureRand);
+    that.data.snake[0].sR = that.data.snake[0].r * 0.55;
     switch(b){//以随机的角度为依据，写出初始蛇的出生方向
       case 0: 
         tureRand === 90?v = 0:'';
@@ -96,9 +99,10 @@ Page({
         that.setData({
           drawInter:setInterval(() => {
             that.data.draw(ctx,that.data.snake[0].apprar);
+            that.eatFood(ctxF);
             that.data.snake[0].apprar++;
             if( that.data.snake[0].apprar === that.data.snake[0].sLength){
-              that.snakeMove(ctx);
+              that.snakeMove(ctx,ctxF);
             }
           }, that.data.speed),
         })
@@ -120,9 +124,10 @@ Page({
         that.setData({
           drawInter:setInterval(() => {
             that.data.draw(ctx,that.data.snake[0].apprar);
+            that.eatFood(ctxF);
             that.data.snake[0].apprar++;
             if( that.data.snake[0].apprar === that.data.snake[0].sLength){
-              that.snakeMove(ctx);
+              that.snakeMove(ctx,ctxF);
             }
           }, that.data.speed),
         })
@@ -144,9 +149,10 @@ Page({
         that.setData({
           drawInter:setInterval(() => {
             that.data.draw(ctx,that.data.snake[0].apprar);
+            that.eatFood(ctxF);
             that.data.snake[0].apprar++;
             if( that.data.snake[0].apprar === that.data.snake[0].sLength){
-              that.snakeMove(ctx);
+              that.snakeMove(ctx,ctxF);
             }
           }, that.data.speed),
         })
@@ -168,9 +174,10 @@ Page({
         that.setData({
           drawInter:setInterval(() => {
             that.data.draw(ctx,that.data.snake[0].apprar);
+            that.eatFood(ctxF);
             that.data.snake[0].apprar++;
             if( that.data.snake[0].apprar === that.data.snake[0].sLength){
-              that.snakeMove(ctx);
+              that.snakeMove(ctx,ctxF);
             }
           }, that.data.speed),
         })
@@ -178,6 +185,7 @@ Page({
       default: ;
     };
     that.makeFood(ctxF);
+    that.eatFood(ctxF);
   },
 
   directionTouchS:function(e){//虚拟轮盘的触摸开始事件，获得初始的位置
@@ -245,6 +253,7 @@ Page({
     //更新蛇的坐标
     let kk = this.data.snake[0].apprar;
     let kl = this.data.snake[2].length;
+    console.log(kk,kl);
     let vk = this.data.snake[2][kk - 1];
     let vX = null;
     let vY = null;
@@ -303,9 +312,8 @@ Page({
         }
       })
     );
-
   },
-  snakeMove:function(c){//蛇全部出来后启用这个定时器
+  snakeMove:function(c,c1){//蛇全部出来后启用这个定时器
     clearInterval(this.data.drawInter);
     this.setData({
       drawInter:setInterval(() => {
@@ -341,6 +349,7 @@ Page({
             ):'';
           }
         }
+        that.eatFood(c1);
         that.data.draw(c,that.data.snake[0].apprar - 1);
       }, this.data.speed)
     })
@@ -348,19 +357,18 @@ Page({
   makeFood:function(c){//生成食物
     let x = Math.floor((Math.random() * app.device.width));
     let y = Math.floor((Math.random() * app.device.height));
-    let w = Math.floor(Math.random() + 10 - 3);
-    let h = Math.floor(Math.random() + 10 - 3);
-    let r = Math.floor(Math.random() + 10 - 7);
-    let p = Math.floor(Math.random() + 99);
-    console.log(x,y,w,h);
+    let rS = Math.floor(Math.random() * 5 + 7);
+    let r = Math.floor(Math.random() * 5 + 3);
+    let p = Math.floor(Math.random() * 99);
     this.setData({
       food:{
-        x:x,
-        y:y,
+        t:p%2,
+        x:p%2 === 0?x+rS/2:x,
+        y:p%2 === 0?y+rS/2:y,
         r:r,
         fSize:{
-          width:w,
-          height:h
+          width:rS,
+          height:rS
         }
       }
     })
@@ -369,6 +377,55 @@ Page({
     p%2 === 0? c.fillRect(this.data.food.x,this.data.food.y,this.data.food.fSize.width,this.data.food.fSize.height):c.arc(x,y,r,0,2*Math.PI);
     c.fill();
     c.draw();
+  },
+  eatFood:function(c){//吃掉食物
+    let that = this;
+    let l = that.data.snake[2].length;
+    let sak = that.data.snake;
+    let fod = that.data.food;
+    (Math.abs(sak[2][l - 1].x - fod.x) <= sak[0].sR && Math.abs(sak[2][l - 1].y - fod.y) <= sak[0].sR)?(that.upSnakeLength(),that.scoring(),that.makeFood(c)):'';
+  },
+  scoring:function(){//更新计分板
+    let h = [[7,8,9,10,11,12],[3,4,5,6,7,8]];
+    let that = this;
+    let rand = Math.floor(Math.random() * 100 + 100);
+    let ii = null;
+    let i = that.data.food.t;
+    i === 0?ii = that.data.food.fSize.width:ii = that.data.food.r;
+    let b = h[i].indexOf(ii);
+    that.setData({
+      score:{
+        fraction:that.data.score.fraction + rand * b,
+        length:''
+      }
+    })
+  },
+  upSnakeLength:function(){//更新蛇的长度
+    let h = [[7,8,9,10,11,12],[3,4,5,6,7,8]];
+    let that = this;
+    let ii = null;
+    let i = that.data.food.t;
+    i === 0?ii = that.data.food.fSize.width:ii = that.data.food.r;
+    let b = h[i].indexOf(ii);
+    let iX = that.data.snake[1].x - that.data.snake[2][0].x;
+    let iY = that.data.snake[1].y - that.data.snake[2][0].y;
+    let arry = [];
+    let yyy = b + 1;
+    console.log(yyy);
+    let ins = that.data.snake[1];
+    let len = that.data.snake[0].sLength;
+    let lR = that.data.snake[0].apprar;
+    for(;yyy>0;yyy--){
+      let ar = {x:null,y:null};
+      ar.x = ins.x + yyy * iX;
+      ar.y = ins.y + yyy * iY;
+      arry.push(ar);
+    }
+    that.data.snake[1].x = ins.x + (iX * ((b + 1) + 1));
+    that.data.snake[1].y = ins.y + (iY * ((b + 1) + 1));
+    that.data.snake[2].splice(0,0,...arry);
+    that.data.snake[0].sLength = len + b + 1;
+    that.data.snake[0].apprar = lR + b + 1;
   },
   directionTouchE:function(e){//轮播触摸结束事件，轮播回到初始位置
     let x = this.data.directionInit.left;
