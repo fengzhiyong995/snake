@@ -5,9 +5,10 @@ Page({
   data: {
       score:{//积分板的数据
         fraction:0,
-        length:null
+        length:null,
+        maxScore:0
       },
-      speed:150,//速度
+      speed:130,//速度
       direction:{//虚拟轮盘的位置
         x:null,
         y:null
@@ -64,12 +65,18 @@ Page({
           width:null,
           height:null
         }
+      },
+      sMap:{
+        width:null,
+        height:null
       }
   },
   onLoad:function(){
     var that = this;
     const ctx = wx.createCanvasContext('snakeMapB');
     const ctxF = wx.createCanvasContext('snakeFood');
+    const ctxS = wx.createCanvasContext('snakeMaps');
+    const cSQ = wx.createSelectorQuery();
     let l = that.data.snake[0].sLength;
     let rand = Math.floor(Math.random() * 360);
     let b = Math.floor(rand / 90);
@@ -78,10 +85,33 @@ Page({
     let tan = Math.tan(Math.PI / 180 * tureRand) * v;
     let ss = [];
     let x,y;
-    that.data.snake[0].xMove = v;
-    that.data.snake[0].yMove = tan;
+    cSQ.select('#snakeMaps').boundingClientRect();
+    cSQ.exec((r) => {
+      that.setData({
+        sMap:{
+          width:r[0].width,
+          height:r[0].height
+        }
+      });
+      that.drawMaps(ctxS);
+    })
+    that.setData({
+      'snake[0].xMove':v,
+      'snake[0].yMove':tan,
+      'snake[0].sR':that.data.snake[0].r * 0.55
+    })
     that.data.snake[0].deg.push(b+1,tureRand);
-    that.data.snake[0].sR = that.data.snake[0].r * 0.55;
+    try{
+      let val = wx.getStorageSync('maxScore')
+      if(!val && val !== 0){
+        wx.setStorageSync('maxScore', that.data.score.maxScore)
+      }
+      else{
+        that.setData({
+          'score.maxScore':val
+        })
+      }
+    }catch(e){}
     switch(b){//以随机的角度为依据，写出初始蛇的出生方向
       case 0: 
         tureRand === 90?v = 0:'';
@@ -98,12 +128,7 @@ Page({
         that.data.snake.push(ss);
         that.setData({
           drawInter:setInterval(() => {
-            that.data.draw(ctx,that.data.snake[0].apprar);
-            that.eatFood(ctxF);
-            that.data.snake[0].apprar++;
-            if( that.data.snake[0].apprar === that.data.snake[0].sLength){
-              that.snakeMove(ctx,ctxF);
-            }
+            that.interMoveSnakeStart();
           }, that.data.speed),
         })
         break;
@@ -123,12 +148,7 @@ Page({
         console.log(x,y,rand);
         that.setData({
           drawInter:setInterval(() => {
-            that.data.draw(ctx,that.data.snake[0].apprar);
-            that.eatFood(ctxF);
-            that.data.snake[0].apprar++;
-            if( that.data.snake[0].apprar === that.data.snake[0].sLength){
-              that.snakeMove(ctx,ctxF);
-            }
+            that.interMoveSnakeStart();
           }, that.data.speed),
         })
         break;
@@ -148,12 +168,7 @@ Page({
         console.log(x,y,rand);
         that.setData({
           drawInter:setInterval(() => {
-            that.data.draw(ctx,that.data.snake[0].apprar);
-            that.eatFood(ctxF);
-            that.data.snake[0].apprar++;
-            if( that.data.snake[0].apprar === that.data.snake[0].sLength){
-              that.snakeMove(ctx,ctxF);
-            }
+            that.interMoveSnakeStart();
           }, that.data.speed),
         })
         break;
@@ -173,12 +188,7 @@ Page({
         console.log(x,y,rand);
         that.setData({
           drawInter:setInterval(() => {
-            that.data.draw(ctx,that.data.snake[0].apprar);
-            that.eatFood(ctxF);
-            that.data.snake[0].apprar++;
-            if( that.data.snake[0].apprar === that.data.snake[0].sLength){
-              that.snakeMove(ctx,ctxF);
-            }
+            that.interMoveSnakeStart();
           }, that.data.speed),
         })
         break;
@@ -187,9 +197,75 @@ Page({
     that.makeFood(ctxF);
     that.eatFood(ctxF);
   },
+  onReady:function(){
 
+    // this.drawMaps(ctxS);
+
+  },
+
+  suspend:function(e){
+    clearInterval(this.data.drawInter);
+    // let a = this.data.snake[0].apprar;
+    // a <= this.data.snake[0].sLength?(
+    //   this.setData({
+    //     drawInter:setInterval(() => {
+    //       this.interMoveSnakeStart();
+    //     }, this.data.speed)
+    //   })):(
+    //     this.setData({
+    //       drawInter:setInterval(() => {
+    //         this.interMoveSnake();
+    //       }, this.data.speed)
+    //     })
+    //   );
+  },
+  sMapXY:function(){//得到绘制小地图点的坐标
+    let that = this;
+    let XY = [];
+    let ll = {
+      x:that.data.food.x,
+      y:that.data.food.y
+    };
+    let sL = that.data.snake[2][that.data.snake[2].length - 1]
+    XY.push(sL,ll);
+    return XY;
+  },
+  hitWall:function(){//检测撞墙
+    let that = this;
+    let s = that.data.snake;
+    let a = app.device;
+    let v = s[0].apprar;
+    let x = s[2][v - 2].x;
+    let y = s[2][v - 2].y;
+    let r = s[0].sR;
+    if(x - r <= 0 || y - r <= 0 || x + r >= a.width || y + r >= a.height){
+      return true
+    }
+    else{
+      return false
+    }
+  },
+  drawMaps:function(c){//绘制小地图点
+    let that = this;
+    let xy = that.sMapXY();
+    let d = app.device;
+    c.beginPath();
+    c.setFillStyle('blue');
+    for(let i = 1;i>=0;i--){
+      c.arc(this.data.sMap.width * xy[i].x /d.width,this.data.sMap.height * xy[i].y / d.height,that.data.snake[0].r * 0.1,0,2*Math.PI);
+      c.fill();
+      if(i === 0){
+        break;
+      }
+      c.beginPath();
+      c.setFillStyle('red');
+    }
+    c.fill();
+    c.draw();
+  },
   directionTouchS:function(e){//虚拟轮盘的触摸开始事件，获得初始的位置
     let that = this;
+    console.log(that.data.sMap);
     let x = e.touches[0].pageX;
     let y = e.touches[0].pageY;
     let left = e.target.offsetLeft;
@@ -198,7 +274,6 @@ Page({
     nn.select('.snakeDirection').boundingClientRect();
     nn.select('.snakeDirection .top').boundingClientRect();
     nn.exec(r =>{
-      console.log(r);
       this.setData({
         directionInit:{
           x:x,
@@ -313,50 +388,20 @@ Page({
       })
     );
   },
-  snakeMove:function(c,c1){//蛇全部出来后启用这个定时器
+  snakeMove:function(){//蛇全部出来后启用这个定时器
     clearInterval(this.data.drawInter);
     this.setData({
       drawInter:setInterval(() => {
-        let that = this;
-        let deg = that.data.snake[0].deg;
-        let ll = that.data.snake[2].length;
-        for(let i = 0;i<deg.length;i++){
-          deg[i] = Number(deg[i]);
-        }
-        that.data.snake[1].x = that.data.snake[2][0].x;
-        that.data.snake[1].y = that.data.snake[2][0].y;
-        for(let ii = 0;ii<ll;ii++){
-          if(ii < ll - 1){
-            that.data.snake[2][ii].x = that.data.snake[2][ii + 1].x;
-            that.data.snake[2][ii].y = that.data.snake[2][ii + 1].y;
-          }
-          else{
-            deg[0] === 1?(
-              that.data.snake[2][ii].x += that.data.snake[0].xMove,
-              that.data.snake[2][ii].y += that.data.snake[0].yMove
-            ):'';
-            deg[0] === 2?(
-              that.data.snake[2][ii].x -= that.data.snake[0].xMove,
-              that.data.snake[2][ii].y += that.data.snake[0].yMove
-            ):'';
-            deg[0] === 3?(
-              that.data.snake[2][ii].x -= that.data.snake[0].xMove,
-              that.data.snake[2][ii].y -= that.data.snake[0].yMove
-            ):'';
-            deg[0] === 4?(
-              that.data.snake[2][ii].x += that.data.snake[0].xMove,
-              that.data.snake[2][ii].y -= that.data.snake[0].yMove
-            ):'';
-          }
-        }
-        that.eatFood(c1);
-        that.data.draw(c,that.data.snake[0].apprar - 1);
+        this.interMoveSnake();
       }, this.data.speed)
     })
   },
   makeFood:function(c){//生成食物
+    let rr = this.data.snake[0].r / 2;
     let x = Math.floor((Math.random() * app.device.width));
+    x <= rr? x += rr:'';x >= app.device.width - rr?x -= rr:'';
     let y = Math.floor((Math.random() * app.device.height));
+    y <= rr?y+=rr:'';y<=app.device.height - rr?y-=rr:'';
     let rS = Math.floor(Math.random() * 5 + 7);
     let r = Math.floor(Math.random() * 5 + 3);
     let p = Math.floor(Math.random() * 99);
@@ -393,10 +438,13 @@ Page({
     let i = that.data.food.t;
     i === 0?ii = that.data.food.fSize.width:ii = that.data.food.r;
     let b = h[i].indexOf(ii);
+    let bb = that.data.score.fraction + rand * b;
+    bb > wx.getStorageSync('maxScore')?wx.setStorageSync('maxScore', bb):'';
     that.setData({
       score:{
-        fraction:that.data.score.fraction + rand * b,
-        length:''
+        fraction:bb,
+        length:'',
+        maxScore:wx.getStorageSync('maxScore')
       }
     })
   },
@@ -465,6 +513,68 @@ Page({
               console.log('我离开了',this.data.speed)
       }, 100),
     })
+  },
+  interMoveSnake:function(){
+    let that = this;
+    let ctx = wx.createCanvasContext('snakeMapB');
+    let ctxF = wx.createCanvasContext('snakeFood');
+    let ctxS = wx.createCanvasContext('snakeMaps');
+    let deg = that.data.snake[0].deg;
+    let ll = that.data.snake[2].length;
+    for(let i = 0;i<deg.length;i++){
+      deg[i] = Number(deg[i]);
+    }
+    that.setData({
+      'snake[1].x':that.data.snake[2][0].x,
+      'snake[1].y':that.data.snake[2][0].y
+    })
+    for(let ii = 0;ii<ll;ii++){
+      if(ii < ll - 1){
+        that.data.snake[2][ii].x = that.data.snake[2][ii + 1].x;
+        that.data.snake[2][ii].y = that.data.snake[2][ii + 1].y;
+      }
+      else{
+        deg[0] === 1?(
+          that.data.snake[2][ii].x += that.data.snake[0].xMove,
+          that.data.snake[2][ii].y += that.data.snake[0].yMove
+        ):'';
+        deg[0] === 2?(
+          that.data.snake[2][ii].x -= that.data.snake[0].xMove,
+          that.data.snake[2][ii].y += that.data.snake[0].yMove
+        ):'';
+        deg[0] === 3?(
+          that.data.snake[2][ii].x -= that.data.snake[0].xMove,
+          that.data.snake[2][ii].y -= that.data.snake[0].yMove
+        ):'';
+        deg[0] === 4?(
+          that.data.snake[2][ii].x += that.data.snake[0].xMove,
+          that.data.snake[2][ii].y -= that.data.snake[0].yMove
+        ):'';
+      }
+    }
+    if(that.hitWall()){
+      clearInterval(that.data.drawInter);
+    }
+    that.eatFood(ctxF);
+    that.drawMaps(ctxS);
+    that.data.draw(ctx,that.data.snake[0].apprar - 1);
+  },
+  interMoveSnakeStart:function(){
+    let ctx = wx.createCanvasContext('snakeMapB');
+    let ctxF = wx.createCanvasContext('snakeFood');
+    let ctxS = wx.createCanvasContext('snakeMaps');
+    let that = this;
+    that.data.draw(ctx,that.data.snake[0].apprar);
+    that.eatFood(ctxF);
+    that.drawMaps(ctxS);
+    that.data.snake[0].apprar++;
+    if(that.hitWall()){
+      clearInterval(that.data.drawInter);
+    }
+    if( that.data.snake[0].apprar === that.data.snake[0].sLength){
+      that.snakeMove();
+    }
+
   }
 
 

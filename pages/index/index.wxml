@@ -11,10 +11,11 @@
 <view class="snakeScore">
     <text class="fraction">分数: {{score.fraction}}</text>
     <text class="length">长度: {{score.sLength}}</text>
+    <text class="maxScore">历史记录: {{score.maxScore}}</text>
 </view>
 
-<view class="snakeSuspend">
-  <view class="box">
+<view class="snakeSuspend" bindtap="suspend">
+  <view class="box" >
     <view class="ssL"></view>
     <view class="ssR"></view>
   </view>
