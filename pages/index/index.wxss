@@ -3,10 +3,10 @@ page{
 }
 
 .snakeScore{
-  width:100rpx;background-color:rgba(214, 214, 214, 0.04);
+  background-color:rgba(214, 214, 214, 0.04);
   color: #fff;font-size: 10rpx;position: fixed;top: 12rpx;left: 12rpx;
   display: flex;flex-direction: column;box-sizing: border-box;
-  padding: 3rpx 8rpx;
+  padding: 3rpx 45rpx 3rpx 8rpx;
 }
 .snakeScore text{
   margin-bottom: 3rpx;
@@ -41,6 +41,9 @@ page{
 .snakeDeceleration .sD{
     width: 33rpx;height: 3rpx;border-radius: 1.5rpx;background-color: rgba(214, 214, 214, 0.81);
 }
+.No{
+  width:100%;height:100%;position: absolute;border-radius: 50%;background-color: rgba(32, 32, 32, 0.906);
+}
 .snakeSuspend{
   position: fixed;right: 13rpx;bottom: 162rpx;width: 35rpx;height: 35rpx;border-radius: 2rpx;background-color: rgba(214, 214, 214, 0.07);display: flex;
   align-items: center;justify-content: center;
@@ -49,5 +52,12 @@ page{
   display: flex;justify-content: space-between;width: 15rpx;height: 20rpx;
 }
 .snakeSuspend .ssL,.snakeSuspend .ssR{
-  width: 4rpx;height: 20rpx;background-color: rgba(86, 86, 255, 0.9);border-radius: 1.5rpx;
+  width: 4rpx;height: 20rpx;background-color: rgba(86, 86, 255, 0.801);border-radius: 1.5rpx;
+}
+.bkC{
+  width: 100%;height: 100%;background-color: rgba(134, 134, 134, 0.233);position:absolute;
+  display:flex;align-items: center;justify-content: center;font-size: 30rpx;font-weight: 600;color: rgb(24, 24, 24);
+}
+.bkC text{
+  background-color: rgba(255, 103, 97, 0.932);padding:4rpx 6rpx;box-sizing:border-box;border-radius: 5rpx;box-shadow: 0 0 2rpx #6d6d6d91;font-weight: 600;
 }

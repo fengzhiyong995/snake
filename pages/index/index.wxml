@@ -10,7 +10,8 @@
 </canvas>
 <view class="snakeScore">
     <text class="fraction">分数: {{score.fraction}}</text>
-    <text class="length">长度: {{score.sLength}}</text>
+    <text class="length">长度: {{score.length}}</text>
+    <text class="time">存活时间: {{score.time.minutes}}分{{score.time.seconds}}秒</text>
     <text class="maxScore">历史记录: {{score.maxScore}}</text>
 </view>
 
@@ -23,9 +24,16 @@
 <view class="snakeDirection" >
   <view class="top" bindtouchend="directionTouchE" bindtouchmove="directionTouchM" bindtouchstart="directionTouchS" style="top:{{direction.y}}px;left:{{direction.x}}px"></view>
 </view>
-<view class="snakeAcceleration" bindtouchstart = 'accelerationTouchS' bindtouchend="clearinter">
+<view class="snakeAcceleration" bindtouchend="accelerationTouchS">
   <image src="../../images/jiasu.png"></image>
+  <view class="No" wx:if="{{ban.acceleration}}"></view>
 </view>
-<view class="snakeDeceleration" bindtouchstart="decelerationTouchS" bindtouchend="clearinter">
+<view class="snakeDeceleration" bindtouchend="decelerationTouchS">
   <view class="sD"></view>
+  <view class="No" wx:if="{{ban.deceleration}}"></view>
+</view>
+<view class = "bkC" wx:if="{{game.bkC}}">
+    <text class="start" wx:if="{{game.start}}" catchtap="startGame">游戏开始</text>
+    <text class="goOn" wx:if="{{game.goOn}}" catchtap="goGame">继续游戏</text>
+    <text class="goOn" wx:if="{{game.end}}" catchtap="endGame">游戏结束</text>
 </view>

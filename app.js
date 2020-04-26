@@ -12,5 +12,5 @@ App({
   device:{
     width:null,
     height:null
-  }
+  },
 })

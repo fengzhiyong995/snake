@@ -5,10 +5,14 @@ Page({
   data: {
       score:{//积分板的数据
         fraction:0,
-        length:null,
-        maxScore:0
+        length:0,
+        maxScore:0,
+        time:{
+          minutes:0,
+          seconds:0
+        }
       },
-      speed:130,//速度
+      speed:null,//速度
       direction:{//虚拟轮盘的位置
         x:null,
         y:null
@@ -30,17 +34,19 @@ Page({
         xMove:null,
         yMove:null,
         deg:[],
-        bgC:null
+        bgC:['#f47632','#4494d2','#45bf8d','#48af52','#dadc3c','#e74c40','#e1347d','#c83cdd','#f8f8fa','#d1d1d1'],
+        bgCIndex:null
        },
         {
-        x:340,
-        y:119
+        x:null,
+        y:null
       }],
       drawInter:null,//绘制定时器
       draw(c,v){//绘制开始的蛇-动画
         let r = this.snake[0].r;
+        let bgC = this.snake[0].bgC[this.snake[0].bgCIndex];
         c.beginPath();
-        c.setStrokeStyle('red');
+        c.setStrokeStyle(bgC);
         c.setLineCap("round");
         c.setLineJoin("round");
         c.setLineWidth(r);
@@ -50,7 +56,7 @@ Page({
         }        
         c.stroke();   
         c.beginPath();
-        c.setFillStyle('red');
+        c.setFillStyle(bgC);
         c.arc(this.snake[2][v-1].x,this.snake[2][v - 1].y,this.snake[0].sR,0,2*Math.PI);
         c.fill();
         c.draw()
@@ -59,7 +65,7 @@ Page({
         t:null,
         x:null,
         y:null,
-        bgC:null,
+        bgC:'#5656ff',
         r:null,
         fSize:{
           width:null,
@@ -69,10 +75,42 @@ Page({
       sMap:{
         width:null,
         height:null
-      }
+      },
+      game:{
+        bkC:true,
+        start:true,
+        goOn:false,
+        end:false
+      },
+      ban:{
+        deceleration:false,
+        acceleration:false
+      },
+      timeInter:null
   },
   onLoad:function(){
+    this.upStorage('maxScore',this.data.score.maxScore);
+    this.upStorage('time',this.data.score.time);
+    this.setData({
+      'score.maxScore':wx.getStorageSync('maxScore'),
+    });
+  },
+  makeSnake:function(){//生成蛇在画布的坐标组
     var that = this;
+    let lll = that.data.snake[0].bgC.length - 1;
+    let randd = Math.floor(Math.random() * lll);
+    that.setData({
+      speed:130,
+      'snake[0].sLength':30,
+      'snake[0].apprar':1,
+      'snake[0].deg':[],
+      'snake[1].x':340,
+      'snake[1].y':119,
+      'snake[0].bgCIndex':randd,
+      timeInter:setInterval(()=>{
+        that.liveInter()
+      },1000)
+    })
     const ctx = wx.createCanvasContext('snakeMapB');
     const ctxF = wx.createCanvasContext('snakeFood');
     const ctxS = wx.createCanvasContext('snakeMaps');
@@ -82,7 +120,8 @@ Page({
     let b = Math.floor(rand / 90);
     let tureRand = rand - 90 * b; 
     let v = 2;
-    let tan = Math.tan(Math.PI / 180 * tureRand) * v;
+    let tan = null;
+    tureRand <= 45?tan = Math.tan(Math.PI / 180 * tureRand) * v:tan = Math.tan(Math.PI / 180 * (90 - tureRand));
     let ss = [];
     let x,y;
     cSQ.select('#snakeMaps').boundingClientRect();
@@ -98,25 +137,23 @@ Page({
     that.setData({
       'snake[0].xMove':v,
       'snake[0].yMove':tan,
-      'snake[0].sR':that.data.snake[0].r * 0.55
+      'snake[0].sR':that.data.snake[0].r * 0.55,
     })
     that.data.snake[0].deg.push(b+1,tureRand);
-    try{
-      let val = wx.getStorageSync('maxScore')
-      if(!val && val !== 0){
-        wx.setStorageSync('maxScore', that.data.score.maxScore)
-      }
-      else{
-        that.setData({
-          'score.maxScore':val
-        })
-      }
-    }catch(e){}
+    this.upStorage('maxScore',this.data.score.maxScore);
+    this.upStorage('time',this.data.score.time);
+    this.setData({
+      'score.maxScore':wx.getStorageSync('maxScore'),
+    });
     switch(b){//以随机的角度为依据，写出初始蛇的出生方向
       case 0: 
-        tureRand === 90?v = 0:'';
-        x = that.data.snake[1].x + v;
-        y = that.data.snake[1].y + tan;
+        tureRand <= 45?(
+          x = that.data.snake[1].x + v,
+          y = that.data.snake[1].y + tan
+        ):(
+          x = that.data.snake[1].x + tan,
+          y = that.data.snake[1].y + v
+        );
         for(let yy = 1;yy<l;yy++){    
           let s = {};
           s.x = x;
@@ -125,17 +162,17 @@ Page({
           x += v;
           y += tan;
         }
-        that.data.snake.push(ss);
-        that.setData({
-          drawInter:setInterval(() => {
-            that.interMoveSnakeStart();
-          }, that.data.speed),
-        })
+        that.data.snake[2] = ss;
         break;
       case 1: 
-        tureRand === 90?tan = 0:'';
-        x = that.data.snake[1].x - v;
-        y = that.data.snake[1].y + tan;
+        tureRand <= 45?(
+          x = that.data.snake[1].x - tan,
+          y = that.data.snake[1].y + v
+        ):(
+          x = that.data.snake[1].x - v,
+          y = that.data.snake[1].y + tan
+        );
+
         for(let yy = 1;yy<l;yy++){    
           let s = {};
           s.x = x;
@@ -144,18 +181,17 @@ Page({
           y += tan;
           x -= v;
         }
-        that.data.snake.push(ss);
+        that.data.snake[2] = ss;
         console.log(x,y,rand);
-        that.setData({
-          drawInter:setInterval(() => {
-            that.interMoveSnakeStart();
-          }, that.data.speed),
-        })
         break;
       case 2: 
-        tureRand === 90?v = 0:'';
-        y = that.data.snake[1].y - tan;
-        x = that.data.snake[1].x - v;
+        tureRand <= 45?(
+          y = that.data.snake[1].y - tan,
+          x = that.data.snake[1].x - v
+        ):(
+          y = that.data.snake[1].y - v,
+          x = that.data.snake[1].x - tan
+        );
         for(let yy = 1;yy<l;yy++){    
           let s = {};
           s.x = x;
@@ -164,18 +200,17 @@ Page({
           x -= v;
           y -= tan;
         }
-        that.data.snake.push(ss);
+        that.data.snake[2] = ss;
         console.log(x,y,rand);
-        that.setData({
-          drawInter:setInterval(() => {
-            that.interMoveSnakeStart();
-          }, that.data.speed),
-        })
         break;
       case 3: 
-        tureRand === 90?tan = 0:'';
-        x = that.data.snake[1].x + v;
-        y = that.data.snake[1].y - tan;
+        tureRand <= 45?(
+          x = that.data.snake[1].x + tan,
+          y = that.data.snake[1].y - v
+        ):(
+          x = that.data.snake[1].x + v,
+          y = that.data.snake[1].y - tan
+        );
         for(let yy = 1;yy<l;yy++){    
           let s = {};
           s.x = x;
@@ -184,40 +219,21 @@ Page({
           y -= tan;
           x += v;
         }
-        that.data.snake.push(ss);
+        that.data.snake[2] = ss;
         console.log(x,y,rand);
-        that.setData({
-          drawInter:setInterval(() => {
-            that.interMoveSnakeStart();
-          }, that.data.speed),
-        })
         break;
       default: ;
     };
     that.makeFood(ctxF);
     that.eatFood(ctxF);
   },
-  onReady:function(){
-
-    // this.drawMaps(ctxS);
-
-  },
-
-  suspend:function(e){
+  suspend:function(e){//暂停
+    this.setData({
+      'game.bkC':true,
+      'game.goOn':true
+    })
     clearInterval(this.data.drawInter);
-    // let a = this.data.snake[0].apprar;
-    // a <= this.data.snake[0].sLength?(
-    //   this.setData({
-    //     drawInter:setInterval(() => {
-    //       this.interMoveSnakeStart();
-    //     }, this.data.speed)
-    //   })):(
-    //     this.setData({
-    //       drawInter:setInterval(() => {
-    //         this.interMoveSnake();
-    //       }, this.data.speed)
-    //     })
-    //   );
+    clearInterval(this.data.timeInter);
   },
   sMapXY:function(){//得到绘制小地图点的坐标
     let that = this;
@@ -250,7 +266,7 @@ Page({
     let xy = that.sMapXY();
     let d = app.device;
     c.beginPath();
-    c.setFillStyle('blue');
+    c.setFillStyle(that.data.food.bgC);
     for(let i = 1;i>=0;i--){
       c.arc(this.data.sMap.width * xy[i].x /d.width,this.data.sMap.height * xy[i].y / d.height,that.data.snake[0].r * 0.1,0,2*Math.PI);
       c.fill();
@@ -258,14 +274,13 @@ Page({
         break;
       }
       c.beginPath();
-      c.setFillStyle('red');
+      c.setFillStyle(that.data.snake[0].bgC[that.data.snake[0].bgCIndex]);
     }
     c.fill();
     c.draw();
   },
   directionTouchS:function(e){//虚拟轮盘的触摸开始事件，获得初始的位置
     let that = this;
-    console.log(that.data.sMap);
     let x = e.touches[0].pageX;
     let y = e.touches[0].pageY;
     let left = e.target.offsetLeft;
@@ -328,7 +343,6 @@ Page({
     //更新蛇的坐标
     let kk = this.data.snake[0].apprar;
     let kl = this.data.snake[2].length;
-    console.log(kk,kl);
     let vk = this.data.snake[2][kk - 1];
     let vX = null;
     let vY = null;
@@ -397,11 +411,9 @@ Page({
     })
   },
   makeFood:function(c){//生成食物
-    let rr = this.data.snake[0].r / 2;
-    let x = Math.floor((Math.random() * app.device.width));
-    x <= rr? x += rr:'';x >= app.device.width - rr?x -= rr:'';
-    let y = Math.floor((Math.random() * app.device.height));
-    y <= rr?y+=rr:'';y<=app.device.height - rr?y-=rr:'';
+    let rr = this.data.snake[0].r * 1.5;
+    let x = Math.floor((Math.random() * (app.device.width - 2 * rr) + rr));
+    let y = Math.floor((Math.random() * (app.device.height - 2 * rr) + rr));
     let rS = Math.floor(Math.random() * 5 + 7);
     let r = Math.floor(Math.random() * 5 + 3);
     let p = Math.floor(Math.random() * 99);
@@ -414,11 +426,12 @@ Page({
         fSize:{
           width:rS,
           height:rS
-        }
+        },
+        bgC:this.data.food.bgC
       }
     })
     c.beginPath();
-    c.setFillStyle('blue');
+    c.setFillStyle(this.data.food.bgC);
     p%2 === 0? c.fillRect(this.data.food.x,this.data.food.y,this.data.food.fSize.width,this.data.food.fSize.height):c.arc(x,y,r,0,2*Math.PI);
     c.fill();
     c.draw();
@@ -441,11 +454,9 @@ Page({
     let bb = that.data.score.fraction + rand * b;
     bb > wx.getStorageSync('maxScore')?wx.setStorageSync('maxScore', bb):'';
     that.setData({
-      score:{
-        fraction:bb,
-        length:'',
-        maxScore:wx.getStorageSync('maxScore')
-      }
+      "score.fraction":bb,
+      "score.length":that.data.snake[0].apprar,
+      "score.maxScore":wx.getStorageSync('maxScore')
     })
   },
   upSnakeLength:function(){//更新蛇的长度
@@ -459,7 +470,6 @@ Page({
     let iY = that.data.snake[1].y - that.data.snake[2][0].y;
     let arry = [];
     let yyy = b + 1;
-    console.log(yyy);
     let ins = that.data.snake[1];
     let len = that.data.snake[0].sLength;
     let lR = that.data.snake[0].apprar;
@@ -485,42 +495,30 @@ Page({
       }
     })
   },
-  accelerationTouchS:function(e){//长按加速
-    // clearInterval(this.data.interval);
-    this.setData({
-      // speed:1
-      interval:setInterval(() => {
-        this.setData({
-          speed:++this.data.speed
-        });
-        this.data.speed > 4000?clearInterval(this.data.interval):'';
-        console.log('我触发了',this.data.speed);
-      }, 100)
-    })
-
-
+  accelerationTouchS:function(e){//按下加速
+    this.data.speed >= 70?(
+      this.data.interval = setTimeout(() => {
+          this.data.speed -= 10;
+          clearInterval(this.data.drawInter);
+          this.whereGoGame();
+      },110)):'';
   },
-  clearinter:function(e){//没按加速或者减速就清除定时器
-    clearInterval(this.data.interval);
+  decelerationTouchS:function(e){//按下减速
+    this.data.speed <= 200?(
+      this.data.interval = setTimeout(() => {
+          this.data.speed += 10;
+          clearInterval(this.data.drawInter);
+          this.whereGoGame();
+      },110)):'';
   },
-  decelerationTouchS:function(e){//长按减速
-    this.setData({
-      interval:setInterval(() => {
-          this.setData({
-            speed:--this.data.speed
-          });
-          this.data.speed < 300 ?clearInterval(this.data.interval):'';
-              console.log('我离开了',this.data.speed)
-      }, 100),
-    })
-  },
-  interMoveSnake:function(){
+  interMoveSnake:function(){//蛇全部出来后的移动
     let that = this;
     let ctx = wx.createCanvasContext('snakeMapB');
     let ctxF = wx.createCanvasContext('snakeFood');
     let ctxS = wx.createCanvasContext('snakeMaps');
     let deg = that.data.snake[0].deg;
     let ll = that.data.snake[2].length;
+    that.speedLimit();
     for(let i = 0;i<deg.length;i++){
       deg[i] = Number(deg[i]);
     }
@@ -553,13 +551,19 @@ Page({
       }
     }
     if(that.hitWall()){
+      that.setData({
+        'game.bkC':true,
+        'game.end':true
+      })
+      that.upStorageSync();
       clearInterval(that.data.drawInter);
+      clearInterval(that.data.timeInter);
     }
     that.eatFood(ctxF);
     that.drawMaps(ctxS);
     that.data.draw(ctx,that.data.snake[0].apprar - 1);
   },
-  interMoveSnakeStart:function(){
+  interMoveSnakeStart:function(){//蛇还没全部出来的移动
     let ctx = wx.createCanvasContext('snakeMapB');
     let ctxF = wx.createCanvasContext('snakeFood');
     let ctxS = wx.createCanvasContext('snakeMaps');
@@ -568,13 +572,121 @@ Page({
     that.eatFood(ctxF);
     that.drawMaps(ctxS);
     that.data.snake[0].apprar++;
+    that.setData({
+      'score.length':that.data.snake[0].apprar
+    })
     if(that.hitWall()){
+      that.setData({
+        'game.bkC':true,
+        'game.end':true
+      })
+      that.upStorageSync();
       clearInterval(that.data.drawInter);
+      clearInterval(that.data.timeInter);
     }
     if( that.data.snake[0].apprar === that.data.snake[0].sLength){
       that.snakeMove();
     }
-
+    that.speedLimit();
+  },
+  startGame:function(){//开始游戏
+    let that = this;
+    that.makeSnake();
+    that.setData({
+      'game.bkC':false,
+      'game.start':false,
+      drawInter:setInterval(() => {
+        that.interMoveSnakeStart();
+      }, that.data.speed),
+    })
+  },
+  goGame:function(){//继续游戏
+    this.setData({
+      'game.bkC':false,
+      'game.goOn':false,
+      timeInter:setInterval(()=>{
+          this.liveInter();
+      },1000)
+    })
+    this.whereGoGame();
+  },
+  endGame:function(){//结束游戏
+    this.setData({
+      'game.start':true,
+      'game.bkC':true,
+      'game.end':false,
+      "score.time.minutes":0,
+      "score.time.seconds":0,
+      'score.fraction':0
+    })
+    clearInterval(this.data.timeInter);
+  },
+  whereGoGame:function(){//重新开始计时，判断是从哪开始
+    let a = this.data.snake[0].apprar;
+    a < this.data.snake[0].sLength?(
+      this.setData({
+        drawInter:setInterval(() => {
+          this.interMoveSnakeStart();
+        }, this.data.speed)
+      })):(
+        this.setData({
+          drawInter:setInterval(() => {
+            this.interMoveSnake();
+          }, this.data.speed)
+        })
+      );
+  },
+  speedLimit:function(){//根据速度决定加速和减速的状况
+    let that = this;
+    let s = that.data.speed;
+    (s > 70)?(
+      that.setData({
+        "ban.acceleration":false
+      })
+    ):'';
+    s <= 200?(
+      that.setData({
+        'ban.deceleration':false
+      })
+    ):"";
+    if(that.data.speed <= 70){
+      that.setData({
+        "ban.acceleration":true
+      })
+    }
+    if(that.data.speed > 200){
+      that.setData({
+        "ban.deceleration":true
+      })
+    }
+  },
+  liveInter:function(){
+    let that = this;
+    let s = ++that.data.score.time.seconds;
+    s > 60?(
+      that.setData({
+        "score.time.minutes":++that.data.score.time.minutes,
+        "score.time.seconds":1
+      })
+    ):(
+      that.setData({
+        "score.time.seconds":s
+      })
+    )
+  },
+  upStorage:function(e,v){
+    try{
+      let val = wx.getStorageSync(e)
+      if(!val && val !== 0){
+        wx.setStorageSync(e, v);
+      }
+    }catch(e){}
+  },
+  upStorageSync:function(){
+    let val = wx.getStorageSync('time');
+    let value = this.data.score.time;
+    (value.minutes <= val.minutes && value.seconds > val.seconds)?wx.setStorageSync('time', value):'';
+    (value.minutes > val.minutes)?wx.setStorageSync('time', value):'';
   }
 
 
